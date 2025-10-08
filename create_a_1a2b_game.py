@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import random
+from pathlib import Path
 from typing import Tuple
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field, validator
 
 
@@ -59,6 +61,15 @@ class SecretResponse(BaseModel):
 
 
 app = FastAPI(title="1A2B Game API", description="Evaluate guesses for the 1A2B game.")
+
+_INDEX_HTML_PATH = Path(__file__).resolve().parent / "templates" / "index.html"
+_INDEX_HTML = _INDEX_HTML_PATH.read_text(encoding="utf-8")
+
+
+@app.get("/", response_class=HTMLResponse)
+def read_index() -> HTMLResponse:
+    """Serve the single-page interface for playing the 1A2B game."""
+    return HTMLResponse(content=_INDEX_HTML)
 
 
 @app.get("/secret", response_model=SecretResponse)

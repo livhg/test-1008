@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>1A2B Game</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Segoe UI", Roboto, sans-serif;
+        background-color: #f0f4f8;
+        color: #1f2933;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .game-container {
+        width: min(92%, 640px);
+        background-color: #ffffffee;
+        backdrop-filter: blur(12px);
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.15);
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: clamp(2rem, 3vw + 1rem, 2.75rem);
+        text-align: center;
+        color: #0b7285;
+      }
+
+      p.description {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #334155;
+      }
+
+      form {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      input[type="text"] {
+        flex: 1 1 160px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border: 2px solid #94a3b8;
+        border-radius: 8px;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input[type="text"]:focus {
+        border-color: #0b7285;
+        box-shadow: 0 0 0 3px rgba(11, 114, 133, 0.2);
+      }
+
+      button {
+        padding: 0.75rem 1.4rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: linear-gradient(135deg, #0b7285, #1098ad);
+        color: #fff;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(17, 94, 133, 0.25);
+      }
+
+      button.secondary {
+        background: transparent;
+        color: #0b7285;
+        border: 2px solid #0b7285;
+        box-shadow: none;
+      }
+
+      button.secondary:hover {
+        background: rgba(11, 114, 133, 0.1);
+        transform: none;
+      }
+
+      .feedback {
+        margin-top: 1.5rem;
+        min-height: 1.25rem;
+        text-align: center;
+        font-weight: 600;
+      }
+
+      .feedback.success {
+        color: #0f9d58;
+      }
+
+      .feedback.error {
+        color: #d14343;
+      }
+
+      .history {
+        margin-top: 2rem;
+      }
+
+      .history h2 {
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+        color: #0b7285;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        background-color: #fff;
+      }
+
+      th,
+      td {
+        padding: 0.8rem 1rem;
+        text-align: center;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.95rem;
+      }
+
+      th {
+        background-color: #0b7285;
+        color: #fff;
+        font-weight: 600;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      @media (max-width: 480px) {
+        .game-container {
+          padding: 2rem 1.25rem;
+        }
+
+        th,
+        td {
+          font-size: 0.9rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="game-container">
+      <h1>1A2B Game</h1>
+      <p class="description">
+        Guess the 4-digit secret number with unique digits. The API will tell you
+        how many digits are correct and in the right position (<strong>A</strong>)
+        and how many digits are correct but in the wrong position (<strong>B</strong>).
+      </p>
+      <form id="guess-form">
+        <input
+          id="guess"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="Enter a 4-digit guess"
+          aria-label="4-digit guess"
+          required
+        />
+        <button type="submit">Submit Guess</button>
+        <button type="button" class="secondary" id="new-game">New Game</button>
+      </form>
+      <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+      <section class="history" aria-live="polite">
+        <h2>Guess History</h2>
+        <table aria-describedby="history-table">
+          <thead>
+            <tr>
+              <th scope="col">Attempt</th>
+              <th scope="col">Guess</th>
+              <th scope="col">Result</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr id="empty-history">
+              <td colspan="3">No guesses yet. Try your first one!</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+    <script>
+      const feedbackEl = document.getElementById("feedback");
+      const guessInput = document.getElementById("guess");
+      const guessForm = document.getElementById("guess-form");
+      const historyBody = document.getElementById("history-body");
+      const emptyHistoryRow = document.getElementById("empty-history");
+      const newGameButton = document.getElementById("new-game");
+
+      let secretNumber = "";
+      let attemptCounter = 0;
+
+      async function startNewGame() {
+        try {
+          const response = await fetch("/secret");
+          if (!response.ok) {
+            throw new Error("Failed to start a new game.");
+          }
+
+          const data = await response.json();
+          secretNumber = data.secret;
+          attemptCounter = 0;
+          historyBody.innerHTML = "";
+          historyBody.appendChild(emptyHistoryRow);
+          emptyHistoryRow.hidden = false;
+          feedbackEl.textContent = "New game started! Enter your first guess.";
+          feedbackEl.className = "feedback";
+          guessInput.value = "";
+          guessInput.focus();
+        } catch (error) {
+          feedbackEl.textContent = error.message || "Unable to start a new game.";
+          feedbackEl.className = "feedback error";
+        }
+      }
+
+      function validateGuess(guess) {
+        if (!/^\d{4}$/.test(guess)) {
+          return "Please enter exactly four digits.";
+        }
+        const uniqueDigits = new Set(guess);
+        if (uniqueDigits.size !== 4) {
+          return "Digits must be unique. Try a different combination.";
+        }
+        return "";
+      }
+
+      function appendHistoryRow(guess, a, b) {
+        if (!emptyHistoryRow.hidden) {
+          emptyHistoryRow.hidden = true;
+        }
+        const row = document.createElement("tr");
+        const attemptCell = document.createElement("td");
+        attemptCell.textContent = attemptCounter;
+        const guessCell = document.createElement("td");
+        guessCell.textContent = guess;
+        const resultCell = document.createElement("td");
+        resultCell.textContent = `${a}A${b}B`;
+        row.append(attemptCell, guessCell, resultCell);
+        historyBody.appendChild(row);
+      }
+
+      guessForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const guess = guessInput.value.trim();
+        const errorMessage = validateGuess(guess);
+        if (errorMessage) {
+          feedbackEl.textContent = errorMessage;
+          feedbackEl.className = "feedback error";
+          return;
+        }
+
+        if (!secretNumber) {
+          feedbackEl.textContent = "Click \"New Game\" to start playing.";
+          feedbackEl.className = "feedback error";
+          return;
+        }
+
+        try {
+          const response = await fetch("/guess", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ secret: secretNumber, guess }),
+          });
+
+          if (!response.ok) {
+            const { detail } = await response.json();
+            throw new Error(detail || "Unable to evaluate guess.");
+          }
+
+          const result = await response.json();
+          attemptCounter += 1;
+          appendHistoryRow(guess, result.a, result.b);
+
+          if (result.a === 4) {
+            feedbackEl.textContent = `🎉 Correct! You cracked the code in ${attemptCounter} attempts.`;
+            feedbackEl.className = "feedback success";
+          } else {
+            feedbackEl.textContent = `${result.a}A${result.b}B — keep going!`;
+            feedbackEl.className = "feedback";
+          }
+
+          guessInput.value = "";
+          guessInput.focus();
+        } catch (error) {
+          feedbackEl.textContent = error.message || "An unexpected error occurred.";
+          feedbackEl.className = "feedback error";
+        }
+      });
+
+      newGameButton.addEventListener("click", startNewGame);
+
+      // Start the first game as soon as the page loads.
+      startNewGame();
+    </script>
+  </body>
+</html>
