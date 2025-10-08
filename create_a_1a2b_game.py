@@ -39,8 +39,8 @@ def evaluate_guess(secret_number: str, guess: str) -> Tuple[int, int]:
 
 
 class GuessRequest(BaseModel):
-    secret: str = Field(..., min_length=4, max_length=4, regex=r"^\d{4}$")
-    guess: str = Field(..., min_length=4, max_length=4, regex=r"^\d{4}$")
+    secret: str = Field(..., min_length=4, max_length=4, pattern=r"^\d{4}$")
+    guess: str = Field(..., min_length=4, max_length=4, pattern=r"^\d{4}$")
 
     @validator("secret", "guess")
     def digits_must_be_unique(cls, value: str) -> str:  # noqa: N805 - required by Pydantic
@@ -55,7 +55,7 @@ class GuessResponse(BaseModel):
 
 
 class SecretResponse(BaseModel):
-    secret: str = Field(..., min_length=4, max_length=4, regex=r"^\d{4}$")
+    secret: str = Field(..., min_length=4, max_length=4, pattern=r"^\d{4}$")
 
 
 app = FastAPI(title="1A2B Game API", description="Evaluate guesses for the 1A2B game.")
