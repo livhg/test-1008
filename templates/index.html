@@ -20,6 +20,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 2rem 1.5rem;
       }
 
       .game-container {
@@ -29,12 +30,33 @@
         border-radius: 16px;
         padding: 2.5rem 2rem;
         box-shadow: 0 18px 45px rgba(15, 23, 42, 0.15);
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+        position: relative;
+      }
+
+      .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .top-bar #new-game {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.65rem 1.1rem;
+        white-space: nowrap;
       }
 
       .language-toggle {
         display: flex;
         justify-content: flex-end;
-        margin-bottom: 1rem;
+        align-items: center;
+        gap: 0.5rem;
       }
 
       .language-toggle label {
@@ -69,6 +91,7 @@
         gap: 0.75rem;
         flex-wrap: wrap;
         justify-content: center;
+        background-color: #ffffffee;
       }
 
       input[type="text"] {
@@ -130,11 +153,20 @@
       }
 
       .history {
-        margin-top: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
       }
 
       .history h2 {
-        margin-bottom: 0.75rem;
+        margin: 0;
         font-size: 1.15rem;
         color: #0b7285;
       }
@@ -166,9 +198,58 @@
         border-bottom: none;
       }
 
-      @media (max-width: 480px) {
+      @media (max-width: 720px) {
+        body {
+          align-items: stretch;
+          justify-content: flex-start;
+          padding: 1.5rem 1rem;
+        }
+
         .game-container {
           padding: 2rem 1.25rem;
+          min-height: calc(100vh - 3rem);
+        }
+
+        .top-bar {
+          align-items: stretch;
+        }
+
+        .top-bar #new-game {
+          flex: 1 1 100%;
+          text-align: center;
+        }
+
+        form {
+          order: 5;
+          position: sticky;
+          bottom: 0;
+          padding: 1rem 0 0.75rem;
+          margin: 0;
+          z-index: 1;
+          box-shadow: 0 -12px 24px rgba(15, 23, 42, 0.12);
+        }
+
+        #feedback {
+          order: 4;
+        }
+
+        .history {
+          order: 3;
+          max-height: 40vh;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-right: 0.25rem;
+          padding-bottom: 0.75rem;
+          scroll-padding-bottom: 4.5rem;
+        }
+
+        .history::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .history::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.6);
+          border-radius: 999px;
         }
 
         th,
@@ -180,12 +261,17 @@
   </head>
   <body>
     <main class="game-container">
-      <div class="language-toggle">
-        <label for="language-select" data-i18n="languageLabel">語言</label>
-        <select id="language-select" aria-label="語言切換">
-          <option value="zh" selected data-i18n-option="zh">繁體中文</option>
-          <option value="en" data-i18n-option="en">English</option>
-        </select>
+      <div class="top-bar">
+        <div class="language-toggle">
+          <label for="language-select" data-i18n="languageLabel">語言</label>
+          <select id="language-select" aria-label="語言切換">
+            <option value="zh" selected data-i18n-option="zh">繁體中文</option>
+            <option value="en" data-i18n-option="en">English</option>
+          </select>
+        </div>
+        <button type="button" class="secondary" id="new-game" data-i18n="newGame">
+          新遊戲
+        </button>
       </div>
       <h1 data-i18n="title">1A2B 猜數字遊戲</h1>
       <p class="description" data-i18n="description">
@@ -203,13 +289,12 @@
           required
         />
         <button type="submit" data-i18n="submit">送出猜測</button>
-        <button type="button" class="secondary" id="new-game" data-i18n="newGame">
-          新遊戲
-        </button>
       </form>
       <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
       <section class="history" aria-live="polite">
-        <h2 data-i18n="historyTitle">猜測紀錄</h2>
+        <div class="history-header">
+          <h2 data-i18n="historyTitle">猜測紀錄</h2>
+        </div>
         <table aria-describedby="history-table">
           <thead>
             <tr>
