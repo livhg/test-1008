@@ -189,8 +189,8 @@
       </div>
       <h1 data-i18n="title">1A2B 猜數字遊戲</h1>
       <p class="description" data-i18n="description">
-        猜出由四個不重複數字組成的秘密數字。系統會告訴你有多少數字
-        <strong>A</strong> 表示位置正確，<strong>B</strong> 表示數字正確但位置不對。
+        猜出由四個不重複數字（0-9）組成的秘密數字。系統會告訴你每次猜測的結果：
+        <strong>A</strong> 表示數字在正確的位置，<strong>B</strong> 表示數字正確但位置不對。
       </p>
       <form id="guess-form">
         <input
@@ -257,7 +257,7 @@
           languageOption_en: "English",
           title: "1A2B 猜數字遊戲",
           description:
-            "猜出由四個不重複數字組成的秘密數字。系統會告訴你有多少數字 <strong>A</strong> 表示位置正確，<strong>B</strong> 表示數字正確但位置不對。",
+            "猜出由四個不重複數字（0-9）組成的秘密數字。系統會告訴你每次猜測的結果：<strong>A</strong> 表示數字在正確的位置，<strong>B</strong> 表示數字正確但位置不對。",
           submit: "送出猜測",
           newGame: "新遊戲",
           historyTitle: "猜測紀錄",
@@ -290,7 +290,7 @@
           languageOption_en: "English",
           title: "1A2B Game",
           description:
-            "Guess the secret four-digit number with unique digits. The system will tell you how many digits are correct and in the right position (<strong>A</strong>) and how many digits are correct but misplaced (<strong>B</strong>).",
+            "Guess the secret four-digit number made of unique digits (0-9). Each guess shows the result: digits in the correct position are counted as <strong>A</strong>, while correct digits in the wrong position are <strong>B</strong>.",
           submit: "Submit Guess",
           newGame: "New Game",
           historyTitle: "Guess History",
@@ -320,6 +320,7 @@
       let secretNumber = "";
       let attemptCounter = 0;
       let lastFeedback = null;
+      let gameCompleted = false;
 
       function t(key, params = {}) {
         const dictionary = translations[currentLanguage] || translations.en;
@@ -381,6 +382,9 @@
           emptyHistoryRow.hidden = false;
           setFeedback("newGameStarted");
           guessInput.value = "";
+          guessInput.disabled = false;
+          submitButton.disabled = false;
+          gameCompleted = false;
           guessInput.focus();
         } catch (error) {
           const messageKey = error && error.message;
@@ -429,6 +433,10 @@
 
       guessForm.addEventListener("submit", async (event) => {
         event.preventDefault();
+        if (gameCompleted) {
+          return;
+        }
+
         const guess = guessInput.value.trim();
         const errorKey = validateGuess(guess);
         if (errorKey) {
@@ -461,6 +469,9 @@
 
           if (result.a === 4) {
             setFeedback("successMessage", "success", { attempts: attemptCounter });
+            guessInput.disabled = true;
+            submitButton.disabled = true;
+            gameCompleted = true;
           } else {
             setFeedback("guessContinue", "", { a: result.a, b: result.b });
           }
