@@ -220,36 +220,23 @@
         }
 
         form {
-          order: 5;
-          position: sticky;
-          bottom: 0;
-          padding: 1rem 0 0.75rem;
+          order: initial;
+          position: static;
+          padding: 0;
           margin: 0;
-          z-index: 1;
-          box-shadow: 0 -12px 24px rgba(15, 23, 42, 0.12);
+          box-shadow: none;
         }
 
         #feedback {
-          order: 4;
+          order: initial;
         }
 
         .history {
-          order: 3;
-          max-height: 40vh;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-          padding-right: 0.25rem;
-          padding-bottom: 0.75rem;
-          scroll-padding-bottom: 4.5rem;
-        }
-
-        .history::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        .history::-webkit-scrollbar-thumb {
-          background: rgba(148, 163, 184, 0.6);
-          border-radius: 999px;
+          order: initial;
+          max-height: none;
+          overflow: visible;
+          padding-right: 0;
+          padding-bottom: 0;
         }
 
         th,
